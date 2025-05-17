@@ -37,8 +37,7 @@ def mandelbrot_optimized(c_real, c_imag, max_iter):
         z_imag = 2.0 * z_real * z_imag + c_imag
         z_real = z_real_sq - z_imag_sq + c_real
         
-        if i > 50 and i % 25 == 0:
-            if z_real_sq + z_imag_sq < 1e-10:
+        if i > 50 and i % 25 == 0 and z_real_sq + z_imag_sq < 1e-10:
                 return max_iter
     
     return max_iter
