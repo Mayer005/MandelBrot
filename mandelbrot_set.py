@@ -1,5 +1,6 @@
 import numpy as np
-
+import matplotlib.pyplot as plt
+from matplotlib.backend_bases import MouseButton
 
 def mandelbrot_set(xmin, xmax, ymin, ymax, width, height, max_iter):
     x = np.linspace(xmin, xmax, width)
@@ -14,3 +15,4 @@ def mandelbrot_set(xmin, xmax, ymin, ymax, width, height, max_iter):
         div_time[mask] = i
 
     return div_time
+
