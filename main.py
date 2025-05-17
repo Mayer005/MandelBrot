@@ -1,69 +1,51 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import mandelbrot_set as mb
+from matplotlib.animation import FuncAnimation
 
 
-def zoom_to_point(x_center, y_center, width, zoom_factor):
+fig, ax = plt.subplots(figsize=(10, 10))
+img = ax.imshow(np.zeros((800, 800)), cmap='hot', origin='lower', vmin=0, vmax=100)
+plt.colorbar(img)
+title = ax.set_title("Mandelbrot set - initialization")
 
-    new_width = width / zoom_factor
-    xmin = x_center - new_width / 2
-    xmax = x_center + new_width / 2
+
+zoom_center = (-0.745428, 0.113009)
+initial_size = 3.0
+zoom_factor = 0.3
+max_iter_start = 100
+iter_increase = 50
+
+def init():
+
+    mandelbrot = mb.mandelbrot_set(-2.0, 1.0, -1.5, 1.5, 800, 800, max_iter_start)
+    img.set_array(mandelbrot)
+    img.set_extent([-2.0, 1.0, -1.5, 1.5])
+    title.set_text(f"Beginning state (iterations: {max_iter_start})")
+    return [img]
+
+def update(frame):
+    current_size = initial_size * (zoom_factor ** frame)
+    xmin = zoom_center[0] - current_size/2
+    xmax = zoom_center[0] + current_size/2
+    ymin = zoom_center[1] - current_size/2
+    ymax = zoom_center[1] + current_size/2
+    current_iter = max_iter_start + frame * iter_increase
+    
+    mandelbrot = mb.mandelbrot_set(xmin, xmax, ymin, ymax, 800, 800, current_iter)
     
 
-    height_ratio = (original_ymax - original_ymin) / (original_xmax - original_xmin)
-    new_height = new_width * height_ratio
-    ymin = y_center - new_height / 2
-    ymax = y_center + new_height / 2
+    img.set_array(mandelbrot)
+    img.set_extent([xmin, xmax, ymin, ymax])
+    img.set_clim(vmin=0, vmax=current_iter*0.8)  
+    title.set_text(f"Zoom: {(1/current_size):.1f}x, Iterations: {current_iter}")
     
-    return xmin, xmax, ymin, ymax
+    print(f"Frame {frame} rendered - Zoom: {current_size:.5f}")
+    return [img]
 
 
-original_xmin, original_xmax = -2.0, 1.0
-original_ymin, original_ymax = -1.5, 1.5
-width, height = 800, 800
-max_iter = 256
+ani = FuncAnimation(fig, update, frames=300, init_func=init,
+                   interval=1000, blit=True, repeat=False)
 
-
-zoom_center_x = -0.745428  
-zoom_center_y = 0.113009
-zoom_steps = 5 
-zoom_factor = 4  
-
-
-current_xmin, current_xmax = original_xmin, original_xmax
-current_ymin, current_ymax = original_ymin, original_ymax
-current_max_iter = max_iter
-
-
-for step in range(zoom_steps + 1):
-    
-    mandelbrot_image = mb.mandelbrot_set(
-        current_xmin, current_xmax,
-        current_ymin, current_ymax,
-        width, height,
-        current_max_iter
-    )
-    
-
-    plt.figure(figsize=(10, 10))
-    plt.imshow(
-        mandelbrot_image.T,
-        extent=[current_xmin, current_xmax, current_ymin, current_ymax],
-        cmap='hot',
-        origin='lower'
-    )
-    plt.colorbar()
-    plt.title(f'Mandelbrot set (iter: {current_max_iter})\n'
-              f'x: [{current_xmin:.6f}, {current_xmax:.6f}]\n'
-              f'y: [{current_ymin:.6f}, {current_ymax:.6f}]')
-    plt.xlabel('Re(c)')
-    plt.ylabel('Im(c)')
-    plt.show()
-
-    if step < zoom_steps:
-        current_xmin, current_xmax, current_ymin, current_ymax = zoom_to_point(
-            zoom_center_x, zoom_center_y,
-            current_xmax - current_xmin,
-            zoom_factor
-        )
-        current_max_iter = int(current_max_iter * 1.5) 
+plt.tight_layout()
+plt.show()
